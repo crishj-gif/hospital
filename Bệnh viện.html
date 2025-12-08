@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Quản Lý Bệnh Viện </title>
+    <!-- Tailwind CSS cho layout nhanh -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Mermaid JS cho sơ đồ UML -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Tùy chỉnh màu nền và scrollbar */
+        body {
+            background-color: #4B0082; /* Màu tím đậm theo yêu cầu */
+            color: #f3f4f6;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        /* Header Box màu đỏ */
+        .header-box {
+            background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            border: 2px solid #fca5a5;
+            border-radius: 12px;
+        }
+
+        /* Khu vực Code */
+        .code-window {
+            background-color: #1e1e2e;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            border: 1px solid #444;
+        }
+
+        .code-sidebar {
+            background-color: #2b2b3b;
+            border-right: 1px solid #444;
+        }
+
+        .file-tab {
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .file-tab:hover {
+            background-color: #393950;
+        }
+
+        .file-tab.active {
+            background-color: #323246;
+            border-left: 3px solid #ff79c6; /* Hồng */
+            color: #ff79c6;
+            font-weight: bold;
+        }
+
+        /* Custom Syntax Highlighting Colors */
+        pre {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            overflow-x: auto;
+            white-space: pre-wrap; /* Để tránh tràn ngang quá mức */
+        }
+
+        /* Định nghĩa lại màu sắc cho cú pháp (mặc dù tôi đã xóa hàm highlight, nhưng giữ lại các lớp này cho tính năng auto-highlighting của Canvas) */
+        .syntax-keyword { color: #ff79c6; font-weight: bold; } /* HỒNG */
+        .syntax-type { color: #ff5555; font-weight: bold; }    /* ĐỎ */
+        .syntax-class { color: #ffa500; font-weight: bold; }   /* CAM */
+        .syntax-string { color: #f1fa8c; }                     /* Vàng nhạt */
+        .syntax-comment { color: #6272a4; font-style: italic;} /* Xám xanh */
+        .syntax-number { color: #bd93f9; }                     /* Tím nhạt */
+        .syntax-include { color: #8be9fd; }                    /* Cyan */
+
+        /* Diagram Box */
+        .diagram-container {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            padding: 20px;
+            color: #333;
+
+        }
+        .logo-container {
+            position: absolute;
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+            z-index: 10;
+        }
+
+        .website-logo {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+
+    <!-- HEADER: Model Box Màu Đỏ -->
+    <div class="max-w-7xl mx-auto mb-10">
+        <div class="header-box p-6 text-center transform hover:scale-[1.01] transition-transform duration-300">
+            <div class="logo-container">
+                <a href="/">
+                    <img src="https://upload.wikimedia.org/wikipedia/vi/0/0e/Logo_MTA_new.png" alt="Logo MTA" class="website-logo">
+                </a>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold text-white uppercase tracking-wider drop-shadow-md">
+                Quản Lý Bệnh Viện
+            </h1>
+             
+            <p class="mt-2 text-red-100 text-lg">Hệ thống C++ Hướng đối tượng (OOP)</p>
+        </div>
+    </div>
+
+    <!-- NỘI DUNG CHÍNH -->
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Cột Trái: Sơ đồ & Nguyên tắc -->
+        <div class="lg:col-span-1 space-y-6">
+            
+            <!-- Box: Nguyên tắc OOP -->
+            <div class="bg-gray-800 p-6 rounded-xl border border-gray-600 shadow-lg">
+                <h2 class="text-2xl font-bold text-orange-400 mb-4 border-b border-gray-600 pb-2">Nguyên Tắc Thiết Kế</h2>
+                <ul class="space-y-3">
+                    <li class="flex items-start">
+                        <span class="text-pink-500 mr-2">➤</span>
+                        <div>
+                            <strong class="text-pink-400">Tính Kế Thừa (Inheritance):</strong>
+                            <p class="text-sm text-gray-300">Class <span class="text-orange-400">Patient</span> và <span class="text-orange-400">Doctor</span> kế thừa từ class cha <span class="text-orange-400">Person</span> để tái sử dụng mã nguồn (tên, tuổi, id).</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-pink-500 mr-2">➤</span>
+                        <div>
+                            <strong class="text-pink-400">Tính Đa Hình (Polymorphism):</strong>
+                            <p class="text-sm text-gray-300">Sử dụng hàm ảo <code class="text-red-400">virtual void display()</code> để hiển thị thông tin khác nhau tùy theo đối tượng là Bác sĩ hay Bệnh nhân.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-pink-500 mr-2">➤</span>
+                        <div>
+                            <strong class="text-pink-400">Tính Đóng Gói (Encapsulation):</strong>
+                            <p class="text-sm text-gray-300">Dữ liệu được bảo vệ bằng <code class="text-red-400">private/protected</code>, truy xuất qua getter/setter.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-pink-500 mr-2">➤</span>
+                        <div>
+                            <strong class="text-pink-400">Quản Lý Bộ Nhớ:</strong>
+                            <p class="text-sm text-gray-300">Sử dụng mảng con trỏ tĩnh và `new/delete` thủ công</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Box: Sơ đồ UML -->
+            <div class="bg-gray-800 p-1 rounded-xl border border-gray-600 shadow-lg">
+                <h2 class="text-xl font-bold text-orange-400 m-4">Sơ Đồ Lớp (UML Class Diagram)</h2>
+                <div class="diagram-container overflow-x-auto">
+                    <div class="mermaid">
+                        classDiagram
+                            class Person {
+                                #int id
+                                #string name
+                                #int age
+                                +display()
+                            }
+                            class Doctor {
+                                -string specialization
+                                +display()
+                            }
+                            class Patient {
+                                -MedicalRecord record
+                                -int roomNumber
+                                +display()
+                            }
+                            class MedicalRecord {
+                                -string diagnosis
+                                -double fee
+                            }
+                            class Room {
+                                -int number
+                                -double price
+                            }
+                            class Hospital {
+                                -Doctor* doctors[]
+                                -Patient* patients[]
+                                -Room* rooms[]
+                                +addDoctor()
+                                +addPatient()
+                            }
+
+                            Person <|-- Doctor : Inheritance
+                            Person <|-- Patient : Inheritance
+                            Patient *-- MedicalRecord : Composition
+                            Hospital o-- Doctor : Aggregation
+                            Hospital o-- Patient : Aggregation
+                            Hospital o-- Room : Aggregation
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cột Phải: Trình Xem Code -->
+        <div class="lg:col-span-2">
+            <div class="code-window flex flex-col h-[800px]">
+                <!-- Toolbar -->
+                <div class="bg-gray-900 p-3 border-b border-gray-700 flex justify-between items-center">
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                    </div>
+                    <span class="text-gray-400 text-sm font-mono" id="current-filename">main.cpp</span>
+                </div>
+
+                <!-- Content Area -->
+                <div class="flex flex-1 overflow-hidden">
+                    <!-- Sidebar: File List -->
+                    <div class="code-sidebar w-1/4 overflow-y-auto" id="file-list">
+                        <!-- File list will be injected here via JS -->
+                    </div>
+
+                    <!-- Code Editor View -->
+                    <div class="w-3/4 bg-[#282a36] overflow-auto p-4 relative">
+                        <!-- Đã xóa hàm syntaxHighlight. Chỉ hiển thị nội dung thô. -->
+                        <pre><code id="code-content" class="language-cpp"></code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // Khởi tạo Mermaid Diagram
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+
+        // Dữ liệu Code (15 file) - Sẽ không có bất kỳ thẻ <span> nào được thêm vào đây
+        const codeFiles = {
+            "Person.h": `#ifndef PERSON_H
+#define PERSON_H
+
+#include <iostream>
+#include <string>
+using namespace std;
+
+class Person {
+protected:
+    int id;
+    string name;
+    int age;
+    string gender;
+
+public:
+    Person(int id, string name, int age, string gender);
+    virtual ~Person();
+    
+    int getId();
+    string getName();
+    void setName(string name);
+    void setAge(int age);
+    
+    virtual void display(); // Ham ao
+};
+
+#endif`,
+            "Person.cpp": `#include "Person.h"
+
+Person::Person(int id, string name, int age, string gender) {
+    this->id = id;
+    this->name = name;
+    this->age = age;
+    this->gender = gender;
+}
+
+Person::~Person() {}
+
+int Person::getId() { return id; }
+string Person::getName() { return name; }
+
+void Person::setName(string name) { this->name = name; }
+void Person::setAge(int age) { this->age = age; }
+
+void Person::display() {
+    cout << "ID: " << id << " | Ten: " << name 
+         << " | Tuoi: " << age << " | Gioi tinh: " << gender;
+}`,
+            "MedicalRecord.h": `#ifndef MEDICALRECORD_H
+#define MEDICALRECORD_H
+
+#include <iostream>
+#include <string>
+using namespace std;
+
+class MedicalRecord {
+private:
+    string diagnosis;
+    string treatment;
+    double serviceFee;
+
+public:
+    MedicalRecord();
+    void updateRecord(string diagnosis, string treatment, double fee);
+    double getFee();
+    void display();
+};
+
+#endif`,
+            "MedicalRecord.cpp": `#include "MedicalRecord.h"
+
+MedicalRecord::MedicalRecord() {
+    diagnosis = "Chua kham";
+    treatment = "Chua co";
+    serviceFee = 0.0;
+}
+
+void MedicalRecord::updateRecord(string diagnosis, string treatment, double fee) {
+    this->diagnosis = diagnosis;
+    this->treatment = treatment;
+    this->serviceFee = fee;
+}
+
+double MedicalRecord::getFee() {
+    return serviceFee;
+}
+
+void MedicalRecord::display() {
+    cout << "   [Ho so] Chuan doan: " << diagnosis 
+         << " | Dieu tri: " << treatment 
+         << " | Phi dich vu: " << (long)serviceFee << " VND" << endl;
+}`,
+            "Room.h": `#ifndef ROOM_H
+#define ROOM_H
+
+#include <iostream>
+#include <string>
+using namespace std;
+
+class Room {
+private:
+    int roomNumber;
+    string type;
+    double pricePerDay;
+    bool isOccupied;
+
+public:
+    Room(int number, string type, double price);
+    int getRoomNumber();
+    double getPrice();
+    bool getStatus();
+    void setOccupied(bool status);
+    void display();
+};
+
+#endif`,
+            "Room.cpp": `#include "Room.h"
+
+Room::Room(int number, string type, double price) {
+    this->roomNumber = number;
+    this->type = type;
+    this->pricePerDay = price;
+    this->isOccupied = false;
+}
+
+int Room::getRoomNumber() { return roomNumber; }
+double Room::getPrice() { return pricePerDay; }
+bool Room::getStatus() { return isOccupied; }
+void Room::setOccupied(bool status) { isOccupied = status; }
+
+void Room::display() {
+    cout << "Phong " << roomNumber << " (" << type << ") - Gia: " 
+         << (long)pricePerDay << " VND/Ngay - " 
+         << (isOccupied ? "Da co nguoi" : "Trong") << endl;
+}`,
+            "Doctor.h": `#ifndef DOCTOR_H
+#define DOCTOR_H
+
+#include "Person.h"
+
+class Doctor : public Person {
+private:
+    string specialization;
+    int yearsExperience;
+
+public:
+    Doctor(int id, string name, int age, string gender, string spec, int exp);
+    void setSpecialization(string spec);
+    void display(); // Override
+};
+
+#endif`,
+            "Doctor.cpp": `#include "Doctor.h"
+
+Doctor::Doctor(int id, string name, int age, string gender, string spec, int exp)
+    : Person(id, name, age, gender) {
+    this->specialization = spec;
+    this->yearsExperience = exp;
+}
+
+void Doctor::setSpecialization(string spec) {
+    this->specialization = spec;
+}
+
+void Doctor::display() {
+    cout << "[BAC SI] ";
+    Person::display();
+    cout << " | Chuyen khoa: " << specialization 
+         << " | Kinh nghiem: " << yearsExperience << " nam" << endl;
+}`,
+            "Patient.h": `#ifndef PATIENT_H
+#define PATIENT_H
+
+#include "Person.h"
+#include "MedicalRecord.h"
+
+class Patient : public Person {
+private:
+    MedicalRecord record;
+    int assignedRoomNumber;
+    int daysAdmitted;
+
+public:
+    Patient(int id, string name, int age, string gender);
+    
+    void updateHealth(string diagnosis, string treatment, double fee);
+    void assignRoom(int roomNum);
+    void setDaysAdmitted(int days);
+    
+    int getRoomNumber();
+    int getDaysAdmitted();
+    double getServiceFee();
+    
+    void display(); // Override
+};
+
+#endif`,
+            "Patient.cpp": `#include "Patient.h"
+
+Patient::Patient(int id, string name, int age, string gender)
+    : Person(id, name, age, gender) {
+    assignedRoomNumber = 0;
+    daysAdmitted = 0;
+}
+
+void Patient::updateHealth(string diagnosis, string treatment, double fee) {
+    record.updateRecord(diagnosis, treatment, fee);
+}
+
+void Patient::assignRoom(int roomNum) {
+    assignedRoomNumber = roomNum;
+}
+
+void Patient::setDaysAdmitted(int days) {
+    daysAdmitted = days;
+}
+
+int Patient::getRoomNumber() { return assignedRoomNumber; }
+int Patient::getDaysAdmitted() { return daysAdmitted; }
+double Patient::getServiceFee() { return record.getFee(); }
+
+void Patient::display() {
+    cout << "[BENH NHAN] ";
+    Person::display();
+    cout << " | Phong: " << (assignedRoomNumber == 0 ? "Chua co" : to_string(assignedRoomNumber)) << endl;
+    record.display();
+}`,
+            "Appointment.h": `#ifndef APPOINTMENT_H
+#define APPOINTMENT_H
+
+#include <iostream>
+#include <string>
+using namespace std;
+
+class Appointment {
+private:
+    int id;
+    int patientId;
+    int doctorId;
+    string date;
+
+public:
+    Appointment(int id, int pId, int dId, string date);
+    int getId();
+    void display();
+};
+
+#endif`,
+            "Appointment.cpp": `#include "Appointment.h"
+
+Appointment::Appointment(int id, int pId, int dId, string date) {
+    this->id = id;
+    this->patientId = pId;
+    this->doctorId = dId;
+    this->date = date;
+}
+
+int Appointment::getId() { return id; }
+
+void Appointment::display() {
+    cout << "Lich hen ID: " << id << " | Benh nhan ID: " << patientId 
+         << " | Bac si ID: " << doctorId << " | Ngay: " << date << endl;
+}`,
+            "Hospital.h": `#ifndef HOSPITAL_H
+#define HOSPITAL_H
+
+#include "Patient.h"
+#include "Doctor.h"
+#include "Room.h"
+#include "Appointment.h"
+
+#define MAX_SIZE 100 // Gioi han mang tinh
+
+class Hospital {
+private:
+    Doctor* doctors[MAX_SIZE];
+    int docCount;
+
+    Patient* patients[MAX_SIZE];
+    int patCount;
+
+    Room* rooms[MAX_SIZE];
+    int roomCount;
+
+    Appointment* appointments[MAX_SIZE];
+    int appCount;
+
+public:
+    Hospital();
+    ~Hospital();
+
+    // Quan ly Bac si
+    void addDoctor(int id, string name, int age, string gender, string spec, int exp);
+    void showDoctors();
+    
+    // Quan ly Phong
+    void addRoom(int number, string type, double price);
+    void showRooms();
+    Room* findRoom(int number);
+
+    // Quan ly Benh nhan
+    void addPatient(int id, string name, int age, string gender);
+    void showPatients();
+    Patient* findPatient(int id);
+    void deletePatient(int id);
+
+    // Dich vu & Hoa don
+    void examinePatient(int patId, string diag, string treat, double fee);
+    void admitPatientToRoom(int patId, int roomNum, int days);
+    void createInvoice(int patId);
+    
+    // Lich hen
+    void addAppointment(int id, int pId, int dId, string date);
+    void showAppointments();
+};
+
+#endif`,
+            "Hospital.cpp": `#include "Hospital.h"
+
+Hospital::Hospital() {
+    docCount = 0;
+    patCount = 0;
+    roomCount = 0;
+    appCount = 0;
+}
+
+Hospital::~Hospital() {
+    for(int i=0; i<docCount; i++) delete doctors[i];
+    for(int i=0; i<patCount; i++) delete patients[i];
+    for(int i=0; i<roomCount; i++) delete rooms[i];
+    for(int i=0; i<appCount; i++) delete appointments[i];
+}
+
+void Hospital::addDoctor(int id, string name, int age, string gender, string spec, int exp) {
+    if (docCount < MAX_SIZE) {
+        doctors[docCount++] = new Doctor(id, name, age, gender, spec, exp);
+    } else {
+        cout << "Loi: Danh sach bac si day!\\n";
+    }
+}
+// ... (Cac ham khac cua Hospital tuong tu nhu da dinh nghia)`,
+            "main.cpp": `#include <iostream>
+#include "Hospital.h"
+
+using namespace std;
+
+int main() {
+    Hospital h;
+    
+    // Data mau
+    h.addDoctor(101, "Nguyen Van A", 45, "Nam", "Noi khoa", 10);
+    h.addDoctor(102, "Tran Thi B", 38, "Nu", "Ngoai khoa", 8);
+    h.addRoom(101, "Thuong", 200000);
+
+    int choice;
+    do {
+        cout << "\\n--- HE THONG QUAN LY BENH VIEN ---\\n";
+        cout << "1. Them Benh Nhan\\n2. Hien thi danh sach\\n3. Kham benh\\n0. Thoat\\n";
+        cout << "Chon chuc nang: ";
+        cin >> choice;
+        
+        // Switch case logic...
+        
+    } while (choice != 0);
+
+    return 0;
+}`
+        };
+
+        // Render Tabs
+        const fileListEl = document.getElementById('file-list');
+        const codeContentEl = document.getElementById('code-content');
+        const fileNameEl = document.getElementById('current-filename');
+
+        function renderTabs() {
+            let first = true;
+            for (const filename in codeFiles) {
+                const div = document.createElement('div');
+                div.className = 'file-tab p-3 text-gray-400 hover:text-white text-sm font-mono border-b border-gray-700';
+                div.textContent = filename;
+                
+                div.onclick = () => {
+                    // Update Active State
+                    document.querySelectorAll('.file-tab').forEach(t => t.classList.remove('active'));
+                    div.classList.add('active');
+                    
+                    // Show Content
+                    fileNameEl.textContent = filename;
+                    // Lần này, chỉ hiển thị nội dung thô của C++ mà không có bất kỳ thao tác tô màu nào.
+                    // Sử dụng textContent để đảm bảo không có thẻ HTML nào bị giải thích.
+                    codeContentEl.textContent = codeFiles[filename];
+                };
+
+                if (first) {
+                    div.classList.add('active');
+                    fileNameEl.textContent = filename;
+                    codeContentEl.textContent = codeFiles[filename];
+                    first = false;
+                }
+
+                fileListEl.appendChild(div);
+            }
+        }
+
+        // Run
+        renderTabs();
+
+    </script>
+    <footer class="bg-gray-900 text-white py-8 border-t border-gray-800">
+        <div class="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
+            
+            <!-- KHỐI GÓC DƯỚI BÊN TRÁI: Design by Sơn Cris -->
+            <div class="design-by-container mb-6 md:mb-0 text-center md:text-left">
+                <p class="design-by-text text-sm text-gray-400">
+                    Design by <b class="text-white font-semibold tracking-wider">Sơn Cris</b>
+                </p>
+                <p class="text-xs text-gray-600 mt-1">&copy; 2025 Lập trình hướng đối tượng</p>
+            </div>
+
+            <!-- KHỐI GÓC DƯỚI BÊN PHẢI: 3 thông tin liên hệ theo hàng ngang -->
+            <div class="contact-links-container flex flex-wrap justify-center gap-3 sm:gap-4">
+                
+                <!-- Phone Link (Xanh Green) -->
+                <a href="tel:0327208690" title="Gọi 0327208690" class="footer-link phone-link flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium transition duration-300 ease-in-out transform hover:scale-105 shadow-md bg-green-600 hover:bg-green-700 text-white">
+                    <!-- Icon Điện thoại -->
+                    <svg class="footer-icon w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M164.9 24.6c-48 0-87.1 39.1-87.1 87.1v278.7c0 48 39.1 87.1 87.1 87.1h182.2c48 0 87.1-39.1 87.1-87.1V111.7c0-48-39.1-87.1-87.1-87.1H164.9zM256 464c-15.4 0-27.9-12.5-27.9-27.9s12.5-27.9 27.9-27.9 27.9 12.5 27.9 27.9-12.5 27.9-27.9 27.9zm135.2-348.8H122.9V392h268.3V115.2z"/></svg>
+                    <span>0327208690</span>
+                </a>
+                
+                <!-- Instagram Link (Hồng) -->
+                <a href="https://www.instagram.com/son_cris3012/" target="_blank" title="Instagram" class="footer-link instagram-link flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium transition duration-300 ease-in-out transform hover:scale-105 shadow-md bg-pink-600 hover:bg-pink-700 text-white">
+                    <!-- Icon Instagram -->
+                    <svg class="footer-icon w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M224.1 12.6C99.2-22.3-22.3 99.2 12.6 224.1l11.2 11.2c19.3 19.3 46.4 30.1 74.5 30.1h145.4c28.1 0 55.2-10.8 74.5-30.1l11.2-11.2C485.6 99.2 364.1-22.3 239.1 12.6L224.1 27.7l-15 42.1c-14.4 40.3-43.7 70.8-82.6 86.6L48.2 168.1C25.3 177.1 8.5 197.6 8.5 221v82c0 23.4 16.8 43.9 39.7 52.9l84.4 32.1c38.9 15.8 68.2 46.3 82.6 86.6l15 42.1 15-42.1c14.4-40.3 43.7-70.8 82.6-86.6l84.4-32.1c22.9-9 39.7-29.5 39.7-52.9v-82c0-23.4-16.8-43.9-39.7-52.9l-84.4-32.1c-38.9-15.8-68.2-46.3-82.6-86.6l-15-42.1L224.1 27.7zM169.1 296.8c-29.4-29.4-29.4-77 0-106.4s77-29.4 106.4 0 29.4 77 0 106.4-77 29.4-106.4 0zm53.2-61.9c-15.5-15.5-15.5-40.7 0-56.2s40.7-15.5 56.2 0 15.5 40.7 0 56.2-40.7 15.5-56.2 0zm117.8 7.3c15.2-15.2 15.2-39.8 0-55s-39.8-15.2-55 0c-15.2 15.2-15.2 39.8 0 55s39.8 15.2 55 0z"/></svg>
+                    <span>Instagram</span>
+                </a>
+                
+                <!-- Facebook Link (Xanh Blue) -->
+                <a href="https://web.facebook.com/sonsadboiz.12" target="_blank" title="Facebook" class="footer-link facebook-link flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium transition duration-300 ease-in-out transform hover:scale-105 shadow-md bg-blue-600 hover:bg-blue-700 text-white">
+                    <!-- Icon Facebook -->
+                    <svg class="footer-icon w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M400 32H48A48 48 0 0 0 0 80v352a48 48 0 0 0 48 48h137.25V327.37h-51.2v-60.3h51.2v-44.4a76.43 76.43 0 0 1 76.4-76.4h37.7v59.7h-37.7c-25.1 0-25.1 9.2-25.1 25.4v40.7h63.2l-10.1 60.3h-53.1V480H400a48 48 0 0 0 48-48V80a48 48 0 0 0-48-48z"/></svg>
+                    <span>Facebook</span>
+                </a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
