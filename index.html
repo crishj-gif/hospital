@@ -89,6 +89,27 @@
             color: #333;
 
         }
+        /* Style cho Mermaid trong chế độ tối */
+        .mermaid {
+            background-color: transparent !important;
+            color: #d1d5db;
+            padding: 20px;
+            border-radius: 0.75rem;
+        }
+        .mermaid .cluster rect, .mermaid .classGroup rect {
+            fill: #1e1e2e !important; /* Màu nền cho Class Box */
+            stroke: #ff79c6 !important; /* Màu viền */
+        }
+        .mermaid text {
+            fill: #fcd34d !important; /* Màu chữ cho Class Box */
+        }
+        .mermaid .edgeLabel, .mermaid .label {
+            fill: #d1d5db !important;
+        }
+        .mermaid path.edge {
+            stroke: #8be9fd !important; /* Màu cho mối quan hệ */
+        }
+        
         .logo-container {
             position: absolute;
             top: 50%;
@@ -164,49 +185,79 @@
                 </ul>
             </div>
 
-            <!-- Box: Sơ đồ UML -->
-            <div class="bg-gray-800 p-1 rounded-xl border border-gray-600 shadow-lg">
-                <h2 class="text-xl font-bold text-orange-400 m-4">Sơ Đồ Lớp (UML Class Diagram)</h2>
-                <div class="diagram-container overflow-x-auto">
-                    <div class="mermaid">
+            <!-- Box: Sơ đồ UML (Đã cập nhật theo nội dung Canvas) -->
+            <div class="bg-gray-800 p-1 rounded-xl border border-gray-600 shadow-2xl">
+                <h2 class="text-3xl font-extrabold text-orange-400 m-4 text-center">Sơ Đồ Lớp (UML Class Diagram) - Hệ thống Quản lý Bệnh viện</h2>
+                <p class="text-sm text-gray-400 text-center mb-4">(Dựa trên Sơ đồ Kiến trúc Phân lớp đã cung cấp)</p>
+                <div class="diagram-container overflow-x-auto p-4">
+                    <div class="mermaid" id="hospital-uml">
                         classDiagram
+                            direction BT
+                            
+                            %% Định nghĩa các lớp
                             class Person {
-                                #int id
-                                #string name
-                                #int age
+                                #string Name
+                                #int Age
                                 +display()
                             }
+                            class Employee {
+                                +schedule()
+                            }
                             class Doctor {
-                                -string specialization
-                                +display()
+                                -string Specialization
+                                +virter()
                             }
                             class Patient {
                                 -MedicalRecord record
                                 -int roomNumber
-                                +display()
+                            }
+                            class Schedule {
+                                -string timeSlot
                             }
                             class MedicalRecord {
                                 -string diagnosis
-                                -double fee
+                                -Medicine prescribedList[]
+                            }
+                            class Medicine {
+                                -string name
+                                -int stock
                             }
                             class Room {
-                                -int number
+                                -int roomNumber
                                 -double price
                             }
                             class Hospital {
-                                -Doctor* doctors[]
-                                -Patient* patients[]
-                                -Room* rooms[]
+                                -Doctor[] doctors
+                                -Patient[] patients
+                                -Room[] rooms
                                 +addDoctor()
                                 +addPatient()
+                                +manageSystem()
+                            }
+                            class AUTOID {
+                                +generateID()
                             }
 
-                            Person <|-- Doctor : Inheritance
-                            Person <|-- Patient : Inheritance
-                            Patient *-- MedicalRecord : Composition
-                            Hospital o-- Doctor : Aggregation
-                            Hospital o-- Patient : Aggregation
-                            Hospital o-- Room : Aggregation
+                            %% Định nghĩa các mối quan hệ
+                            
+                            %% Kế thừa (Inheritance)
+                            Person <|-- Employee : Kế thừa (Inheritance)
+                            Person <|-- Patient : Kế thừa (Inheritance)
+                            Employee <|-- Doctor : Kế thừa (Inheritance)
+
+                            %% Hợp thành (Composition)
+                            Patient "1" *-- "1" MedicalRecord : Ghi nhận Hồ sơ
+                            Hospital "1" *-- "*" Doctor : Quản lý Bác sĩ
+                            Hospital "1" *-- "*" Patient : Quản lý Bệnh nhân
+                            
+                            %% Kết tập (Aggregation)
+                            MedicalRecord "1" o-- "*" Medicine : Kê đơn
+                            Hospital "1" o-- "*" Room : Tổng hợp Phòng
+                            
+                            %% Hiệp hội (Association / Dependency)
+                            Doctor "1" -- "1" Schedule : Có Lịch làm
+                            Room ..> AUTOID : Sử dụng ID Tự động
+                            
                     </div>
                 </div>
             </div>
@@ -243,7 +294,44 @@
     </div>
 
     <!-- FOOTER -->
-    <
+    <footer class="bg-gray-900 text-white py-8 border-t border-gray-800 mt-8">
+        <div class="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
+            
+            <!-- KHỐI GÓC DƯỚI BÊN TRÁI: Design by Sơn Cris -->
+            <div class="design-by-container mb-6 md:mb-0 text-center md:text-left">
+                <p class="design-by-text text-sm text-gray-400">
+                    Design by <b class="text-white font-semibold tracking-wider">Sơn Cris</b>
+                </p>
+                <p class="text-xs text-gray-600 mt-1">&copy; 2025 Lập trình hướng đối tượng</p>
+            </div>
+
+            <!-- KHỐI GÓC DƯỚI BÊN PHẢI: 3 thông tin liên hệ theo hàng ngang -->
+            <div class="contact-links-container flex flex-wrap justify-center gap-3 sm:gap-4">
+                
+                <!-- Phone Link (Xanh Green) -->
+                <a href="tel:0327208690" title="Gọi 0327208690" class="footer-link phone-link flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium transition duration-300 ease-in-out transform hover:scale-105 shadow-md bg-green-600 hover:bg-green-700 text-white">
+                    <!-- Icon Điện thoại -->
+                    <svg class="footer-icon w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M164.9 24.6c-48 0-87.1 39.1-87.1 87.1v278.7c0 48 39.1 87.1 87.1 87.1h182.2c48 0 87.1-39.1 87.1-87.1V111.7c0-48-39.1-87.1-87.1-87.1H164.9zM256 464c-15.4 0-27.9-12.5-27.9-27.9s12.5-27.9 27.9-27.9 27.9 12.5 27.9 27.9-12.5 27.9-27.9 27.9zm135.2-348.8H122.9V392h268.3V115.2z"/></svg>
+                    <span>0327208690</span>
+                </a>
+                
+                <!-- Instagram Link (Hồng) -->
+                <a href="https://www.instagram.com/son_cris3012/" target="_blank" title="Instagram" class="footer-link instagram-link flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium transition duration-300 ease-in-out transform hover:scale-105 shadow-md bg-pink-600 hover:bg-pink-700 text-white">
+                    <!-- Icon Instagram -->
+                    <svg class="footer-icon w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M224.1 12.6C99.2-22.3-22.3 99.2 12.6 224.1l11.2 11.2c19.3 19.3 46.4 30.1 74.5 30.1h145.4c28.1 0 55.2-10.8 74.5-30.1l11.2-11.2C485.6 99.2 364.1-22.3 239.1 12.6L224.1 27.7l-15 42.1c-14.4 40.3-43.7 70.8-82.6 86.6L48.2 168.1C25.3 177.1 8.5 197.6 8.5 221v82c0 23.4 16.8 43.9 39.7 52.9l84.4 32.1c38.9 15.8 68.2 46.3 82.6 86.6l15 42.1 15-42.1c14.4-40.3 43.7-70.8 82.6-86.6l84.4-32.1c22.9-9 39.7-29.5 39.7-52.9v-82c0-23.4-16.8-43.9-39.7-52.9l-84.4-32.1c-38.9-15.8-68.2-46.3-82.6-86.6l-15-42.1L224.1 27.7zM169.1 296.8c-29.4-29.4-29.4-77 0-106.4s77-29.4 106.4 0 29.4 77 0 106.4-77 29.4-106.4 0zm53.2-61.9c-15.5-15.5-15.5-40.7 0-56.2s40.7-15.5 56.2 0 15.5 40.7 0 56.2-40.7 15.5-56.2 0zm117.8 7.3c15.2-15.2 15.2-39.8 0-55s-39.8-15.2-55 0c-15.2 15.2-15.2 39.8 0 55s39.8 15.2 55 0z"/></svg>
+                    <span>Instagram</span>
+                </a>
+                
+                <!-- Facebook Link (Xanh Blue) -->
+                <a href="https://web.facebook.com/sonsadboiz.12" target="_blank" title="Facebook" class="footer-link facebook-link flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium transition duration-300 ease-in-out transform hover:scale-105 shadow-md bg-blue-600 hover:bg-blue-700 text-white">
+                    <!-- Icon Facebook -->
+                    <svg class="footer-icon w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M400 32H48A48 48 0 0 0 0 80v352a48 48 0 0 0 48 48h137.25V327.37h-51.2v-60.3h51.2v-44.4a76.43 76.43 0 0 1 76.4-76.4h37.7v59.7h-37.7c-25.1 0-25.1 9.2-25.1 25.4v40.7h63.2l-10.1 60.3h-53.1V480H400a48 48 0 0 0 48-48V80a48 48 0 0 0-48-48z"/></svg>
+                    <span>Facebook</span>
+                </a>
+            </div>
+        </div>
+    </footer>
+
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
@@ -660,42 +748,5 @@ int main() {
         renderTabs();
 
     </script>
-    <footer class="bg-gray-900 text-white py-8 border-t border-gray-800">
-        <div class="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
-            
-            <!-- KHỐI GÓC DƯỚI BÊN TRÁI: Design by Sơn Cris -->
-            <div class="design-by-container mb-6 md:mb-0 text-center md:text-left">
-                <p class="design-by-text text-sm text-gray-400">
-                    Design by <b class="text-white font-semibold tracking-wider">Sơn Cris</b>
-                </p>
-                <p class="text-xs text-gray-600 mt-1">&copy; 2025 Lập trình hướng đối tượng</p>
-            </div>
-
-            <!-- KHỐI GÓC DƯỚI BÊN PHẢI: 3 thông tin liên hệ theo hàng ngang -->
-            <div class="contact-links-container flex flex-wrap justify-center gap-3 sm:gap-4">
-                
-                <!-- Phone Link (Xanh Green) -->
-                <a href="tel:0327208690" title="Gọi 0327208690" class="footer-link phone-link flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium transition duration-300 ease-in-out transform hover:scale-105 shadow-md bg-green-600 hover:bg-green-700 text-white">
-                    <!-- Icon Điện thoại -->
-                    <svg class="footer-icon w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M164.9 24.6c-48 0-87.1 39.1-87.1 87.1v278.7c0 48 39.1 87.1 87.1 87.1h182.2c48 0 87.1-39.1 87.1-87.1V111.7c0-48-39.1-87.1-87.1-87.1H164.9zM256 464c-15.4 0-27.9-12.5-27.9-27.9s12.5-27.9 27.9-27.9 27.9 12.5 27.9 27.9-12.5 27.9-27.9 27.9zm135.2-348.8H122.9V392h268.3V115.2z"/></svg>
-                    <span>0327208690</span>
-                </a>
-                
-                <!-- Instagram Link (Hồng) -->
-                <a href="https://www.instagram.com/son_cris3012/" target="_blank" title="Instagram" class="footer-link instagram-link flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium transition duration-300 ease-in-out transform hover:scale-105 shadow-md bg-pink-600 hover:bg-pink-700 text-white">
-                    <!-- Icon Instagram -->
-                    <svg class="footer-icon w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M224.1 12.6C99.2-22.3-22.3 99.2 12.6 224.1l11.2 11.2c19.3 19.3 46.4 30.1 74.5 30.1h145.4c28.1 0 55.2-10.8 74.5-30.1l11.2-11.2C485.6 99.2 364.1-22.3 239.1 12.6L224.1 27.7l-15 42.1c-14.4 40.3-43.7 70.8-82.6 86.6L48.2 168.1C25.3 177.1 8.5 197.6 8.5 221v82c0 23.4 16.8 43.9 39.7 52.9l84.4 32.1c38.9 15.8 68.2 46.3 82.6 86.6l15 42.1 15-42.1c14.4-40.3 43.7-70.8 82.6-86.6l84.4-32.1c22.9-9 39.7-29.5 39.7-52.9v-82c0-23.4-16.8-43.9-39.7-52.9l-84.4-32.1c-38.9-15.8-68.2-46.3-82.6-86.6l-15-42.1L224.1 27.7zM169.1 296.8c-29.4-29.4-29.4-77 0-106.4s77-29.4 106.4 0 29.4 77 0 106.4-77 29.4-106.4 0zm53.2-61.9c-15.5-15.5-15.5-40.7 0-56.2s40.7-15.5 56.2 0 15.5 40.7 0 56.2-40.7 15.5-56.2 0zm117.8 7.3c15.2-15.2 15.2-39.8 0-55s-39.8-15.2-55 0c-15.2 15.2-15.2 39.8 0 55s39.8 15.2 55 0z"/></svg>
-                    <span>Instagram</span>
-                </a>
-                
-                <!-- Facebook Link (Xanh Blue) -->
-                <a href="https://web.facebook.com/sonsadboiz.12" target="_blank" title="Facebook" class="footer-link facebook-link flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium transition duration-300 ease-in-out transform hover:scale-105 shadow-md bg-blue-600 hover:bg-blue-700 text-white">
-                    <!-- Icon Facebook -->
-                    <svg class="footer-icon w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M400 32H48A48 48 0 0 0 0 80v352a48 48 0 0 0 48 48h137.25V327.37h-51.2v-60.3h51.2v-44.4a76.43 76.43 0 0 1 76.4-76.4h37.7v59.7h-37.7c-25.1 0-25.1 9.2-25.1 25.4v40.7h63.2l-10.1 60.3h-53.1V480H400a48 48 0 0 0 48-48V80a48 48 0 0 0-48-48z"/></svg>
-                    <span>Facebook</span>
-                </a>
-            </div>
-        </div>
-    </footer>
 </body>
 </html>
