@@ -308,15 +308,14 @@
 
         // Dữ liệu Code (21 file C++ mới)
         const codeFiles = {
-            "AUTOID.h": `#ifndef AUTOID_H
-#define AUTOID_H
+            "AUTOID.h": `#pragma once
 
 class AUTOID {
 public:
     static int generateID();
 };
 
-#endif`,
+`,
             "AUTOID.cpp": `#include "AUTOID.h"
 
 int AUTOID::generateID() {
@@ -324,8 +323,7 @@ int AUTOID::generateID() {
     id++;
     return id;
 }`,
-            "Schedule.h": `#ifndef SCHEDULE_H
-#define SCHEDULE_H
+            "Schedule.h": `#pragma once
 #include <iostream>
 #include <string>
 using namespace std;
@@ -339,7 +337,7 @@ public:
     string getTimeSlot();
 };
 
-#endif`,
+`,
             "Schedule.cpp": `#include "Schedule.h"
 
 Schedule::Schedule() {
@@ -353,8 +351,7 @@ Schedule::Schedule(string time) {
 string Schedule::getTimeSlot() {
     return timeSlot;
 }`,
-            "Medicine.h": `#ifndef MEDICINE_H
-#define MEDICINE_H
+            "Medicine.h": `#pragma once
 #include <iostream>
 #include <string>
 using namespace std;
@@ -371,7 +368,7 @@ public:
     friend ostream& operator<<(ostream& os, Medicine& m);
 };
 
-#endif`,
+`,
             "Medicine.cpp": `#include "Medicine.h"
 
 Medicine::Medicine() {
@@ -396,9 +393,8 @@ ostream& operator<<(ostream& os, Medicine& m) {
     os << "   - Thuoc: " << m.name << " | So luong: " << m.stock;
     return os;
 }`,
-            "MedicalRecord.h": `#ifndef MEDICALRECORD_H
-#define MEDICALRECORD_H
-#include "Medicine.h"
+            "MedicalRecord.h": `#pragma once
+
 #include <iostream>
 #include <string>
 using namespace std;
@@ -415,7 +411,7 @@ public:
     void displayRecord();
 };
 
-#endif`,
+`,
             "MedicalRecord.cpp": `#include "MedicalRecord.h"
 
 MedicalRecord::MedicalRecord() {
@@ -444,8 +440,7 @@ void MedicalRecord::displayRecord() {
         cout << prescribedList[i] << endl;
     }
 }`,
-            "Room.h": `#ifndef ROOM_H
-#define ROOM_H
+            "Room.h": `#pragma once
 #include "AUTOID.h"
 #include <iostream>
 using namespace std;
@@ -461,7 +456,7 @@ public:
     double getPrice();
 };
 
-#endif`,
+`,
             "Room.cpp": `#include "Room.h"
 
 Room::Room() {
@@ -481,8 +476,7 @@ int Room::getRoomNumber() {
 double Room::getPrice() {
     return price;
 }`,
-            "Person.h": `#ifndef PERSON_H
-#define PERSON_H
+            "Person.h": `#pragma once
 #include <iostream>
 #include <string>
 using namespace std;
@@ -497,7 +491,7 @@ public:
     virtual void display();
 };
 
-#endif`,
+`,
             "Person.cpp": `#include "Person.h"
 
 Person::Person() {
@@ -513,8 +507,7 @@ Person::Person(string n, int a) {
 void Person::display() {
     cout << "Ho ten: " << name << ", Tuoi: " << age;
 }`,
-            "Employee.h": `#ifndef EMPLOYEE_H
-#define EMPLOYEE_H
+            "Employee.h": `#pragma once
 #include "Person.h"
 
 class Employee : public Person {
@@ -525,7 +518,7 @@ public:
     void display();
 };
 
-#endif`,
+`,
             "Employee.cpp": `#include "Employee.h"
 
 Employee::Employee() : Person() {}
@@ -540,8 +533,7 @@ void Employee::display() {
     Person::display();
     cout << " [Chuc vu: Nhan vien]";
 }`,
-            "Doctor.h": `#ifndef DOCTOR_H
-#define DOCTOR_H
+            "Doctor.h": `#pragma once
 #include "Employee.h"
 #include "Schedule.h"
 
@@ -556,7 +548,7 @@ public:
     void display();
 };
 
-#endif`,
+`,
             "Doctor.cpp": `#include "Doctor.h"
 
 Doctor::Doctor() : Employee() {
@@ -579,8 +571,7 @@ void Doctor::display() {
     cout << endl << "Chuyen khoa: " << specialization << endl;
     cout << "Ca truc: " << doctorSchedule.getTimeSlot() << endl;
 }`,
-            "Patient.h": `#ifndef PATIENT_H
-#define PATIENT_H
+            "Patient.h": `#pragma once
 #include "Person.h"
 #include "MedicalRecord.h"
 
@@ -595,7 +586,7 @@ public:
     void display();
 };
 
-#endif`,
+`,
             "Patient.cpp": `#include "Patient.h"
 
 Patient::Patient() : Person() {
@@ -618,8 +609,7 @@ void Patient::display() {
     cout << endl << "Phong so: " << roomNumber << endl;
     record.displayRecord();
 }`,
-            "Hospital.h": `#ifndef HOSPITAL_H
-#define HOSPITAL_H
+            "Hospital.h": `#pragma once
 #include "Doctor.h"
 #include "Patient.h"
 #include "Room.h"
@@ -643,7 +633,7 @@ public:
     void manageSystem();
 };
 
-#endif`,
+`,
             "Hospital.cpp": `#include "Hospital.h"
 
 Hospital::Hospital() {
