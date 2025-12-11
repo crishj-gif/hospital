@@ -27,7 +27,7 @@
 
         /* CODE DISPLAY STYLES - Áp dụng cho cả Minimized và Maximized */
         .code-window {
-            background-color: #1e1e2e;
+            background-color: #1e1e2e; /* Màu nền tối kiểu Dracula */
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
             overflow: hidden;
             border: 1px solid #444;
@@ -77,9 +77,10 @@
         pre {
             font-family: 'Roboto Mono', monospace;
             font-size: 14px;
-            line-height: 1.5;
+            line-height: 1.6;
             overflow-x: auto;
             white-space: pre-wrap;
+            color: #f8f8f2; /* Màu chữ mặc định trắng ngà */
         }
 
         /* MINIMIZED VIEW - Khung Code ở giao diện chính */
@@ -178,17 +179,15 @@
             height: 100%;
             width: 100%;
             padding: 20px;
-            /* Cần relative để nút đóng X nằm đúng vị trí, tránh bị tràn */
             position: relative; 
         }
 
-        /* Di chuyển nút đóng X lên trên và bên phải của màn hình modal */
         #image-modal .close-button {
-            top: 20px; /* Di chuyển xuống một chút so với mép trên */
-            right: 40px; /* Lùi vào một chút so với mép phải */
-            font-size: 40px; /* Phóng to nút X cho dễ bấm */
-            z-index: 60; /* Đảm bảo nút X luôn nằm trên ảnh */
-            color: #fca5a5; /* Màu hồng nhạt cho nổi bật */
+            top: 20px;
+            right: 40px;
+            font-size: 40px;
+            z-index: 60;
+            color: #fca5a5;
         }
 
         #modal-image {
@@ -198,21 +197,12 @@
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
             border-radius: 8px;
         }
-        /* END: Thêm CSS cho Image Modal */
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8">
 
     <div class="max-w-7xl mx-auto mb-10">
-        <!-- Đã thêm class 'relative' cho header-box để định vị thời gian tuyệt đối -->
-        <div class="header-box relative p-6 text-center transform hover:scale-[1.01] transition-transform duration-300">
-            
-            <!-- Thêm ô hiển thị thứ ngày giờ hiện tại vào góc trên bên phải -->
-            <div id="current-datetime" class="absolute top-3 right-3 text-right text-red-200 text-sm font-mono p-2 bg-red-800/50 rounded-lg shadow-inner backdrop-blur-sm hidden sm:block">
-                Đang tải...
-            </div>
-            <!-- Kết thúc ô hiển thị thứ ngày giờ hiện tại -->
-            
+        <div class="header-box p-6 text-center transform hover:scale-[1.01] transition-transform duration-300">
             <div class="logo-container">
                 <a href="/">
                     <img src="https://upload.wikimedia.org/wikipedia/vi/0/0e/Logo_MTA_new.png" alt="Logo MTA" class="website-logo">
@@ -297,6 +287,7 @@
                     <div class="code-sidebar overflow-y-auto" id="file-list">
                         </div>
                     <div class="code-content-area overflow-auto relative flex-grow">
+                        <!-- Đổi id để JS xử lý -->
                         <pre><code id="code-content" class="language-cpp"></code></pre>
                     </div>
                 </div>
@@ -345,16 +336,16 @@
         </div>
     </div>
     
-    <!-- IMAGE MODAL: Đã điều chỉnh CSS và thêm X ở góc -->
+    <!-- IMAGE MODAL -->
     <div id="image-modal" class="modal">
         <div id="image-modal-content">
-            <!-- Nút đóng X luôn nằm ở góc trên bên phải -->
             <span class="close-button" onclick="closeImageModal()">
                 &times; 
             </span>
             <img id="modal-image" src="" alt="Sơ đồ lớp phóng to">
         </div>
     </div>
+    
     <script>
         // Các phần tử DOM
         const codeModal = document.getElementById('code-modal');
@@ -366,12 +357,11 @@
         const fileNameEl = document.getElementById('current-filename');
         const maximizeButton = document.getElementById('maximize-button');
         
-        // Thêm phần tử DOM cho Image Modal
         const imageModal = document.getElementById('image-modal');
         const modalImage = document.getElementById('modal-image');
 
 
-        // Dữ liệu Code (21 file C++ mới)
+        // Dữ liệu Code (21 file C++)
         const codeFiles = {
             "AUTOID.h": `#pragma once
 
@@ -822,7 +812,6 @@ int main() {
 }`
         };
         
-        // Sắp xếp file để hiển thị
         const orderedFiles = [
             "AUTOID.h", "Schedule.h", "Medicine.h", "MedicalRecord.h", "Room.h", 
             "Person.h", "Employee.h", "Doctor.h", "Patient.h", "Hospital.h",
@@ -831,8 +820,105 @@ int main() {
             "main.cpp"
         ];
 
+        // --- HÀM TÔ MÀU CÚ PHÁP (MỚI) ---
+        function highlightSyntax(code) {
+            // 1. Escape HTML trước để tránh lỗi thẻ (Quan trọng)
+            let escaped = code.replace(/&/g, "&amp;")
+                              .replace(/</g, "&lt;")
+                              .replace(/>/g, "&gt;");
 
-        // Hàm để tạo các tab file
+            // Bảng màu
+            const colors = {
+                keyword: '#bd93f9', // Tím: class, if, return, include
+                type:    '#ff79c6', // Hồng: int, void, string
+                class:   '#8be9fd', // Xanh dương: Class names, cout, cin
+                string:  '#ff5555', // Đỏ: String "..."
+                comment: '#6272a4', // Xám xanh: Comment
+                number:  '#ff5555'  // Đỏ: Số
+            };
+
+            // Định nghĩa các Regex
+            // Lưu ý: Thứ tự thực hiện rất quan trọng.
+            // Chúng ta sẽ dùng chiến thuật "split and reconstruct" để an toàn nhất,
+            // nhưng với demo đơn giản, ta sẽ replace theo thứ tự ưu tiên và tránh replace lồng nhau.
+            // Để đảm bảo "không dính thẻ lạ", ta sẽ thực hiện replace trên chuỗi đã escape.
+
+            // 1. Strings (Đỏ) - Xử lý trước để tránh keyword nằm trong string
+            // Regex bắt "..."
+            escaped = escaped.replace(/(".*?")/g, `<span style="color: ${colors.string}">$1</span>`);
+
+            // 2. Comments (Xám/Xanh nhạt) - Xử lý tiếp theo
+            // Regex bắt //...
+            // Cẩn thận: không được bắt // nằm trong thẻ span (ví dụ <span ...>)
+            // Cách đơn giản: Ta tìm // sau khi đã xử lý string. 
+            // Tuy nhiên, để an toàn tuyệt đối với HTML tag vừa thêm, ta dùng hàm replace với callback
+            // hoặc chia nhỏ chuỗi. Ở đây dùng regex lookbehind/ahead đơn giản có thể phức tạp.
+            
+            // GIẢI PHÁP AN TOÀN: Tokenize.
+            // Tách chuỗi thành các phần: Thẻ HTML và Text thường. Chỉ tô màu Text thường.
+            
+            const parts = escaped.split(/(<[^>]*>)/g); // Tách bởi các thẻ <...>
+            
+            for (let i = 0; i < parts.length; i++) {
+                if (parts[i].startsWith('<')) {
+                    continue; // Bỏ qua thẻ HTML đã có
+                }
+                
+                let text = parts[i];
+
+                // --- XỬ LÝ TRONG PHẦN TEXT ---
+
+                // Comment // (Đến cuối dòng)
+                // Lưu ý: Nếu có comment, phần sau đó phải là comment hết, không replace keyword nữa.
+                if (text.includes('//')) {
+                    const subParts = text.split('//');
+                    let newText = subParts[0]; // Phần code trước comment
+                    
+                    // Xử lý code trước comment
+                    newText = highlightKeywords(newText, colors);
+                    
+                    // Phần comment (nối lại nếu có nhiều dấu //)
+                    const commentPart = '//' + subParts.slice(1).join('//');
+                    newText += `<span style="color: ${colors.comment}">${commentPart}</span>`;
+                    
+                    parts[i] = newText;
+                } else {
+                    // Không có comment, xử lý bình thường
+                    parts[i] = highlightKeywords(text, colors);
+                }
+            }
+            
+            return parts.join('');
+        }
+
+        function highlightKeywords(text, colors) {
+            // 3. Keywords (Tím)
+            const kws = "class|struct|public|private|protected|static|virtual|friend|return|if|else|for|while|include|using|namespace|pragma|once|new|delete|break|continue";
+            const kwRegex = new RegExp(`\\b(${kws})\\b`, 'g');
+            text = text.replace(kwRegex, `<span style="color: ${colors.keyword}">$1</span>`);
+
+            // 4. Primitive Types (Hồng)
+            const types = "void|int|double|float|bool|char|string|long|const";
+            const typeRegex = new RegExp(`\\b(${types})\\b`, 'g');
+            text = text.replace(typeRegex, `<span style="color: ${colors.type}">$1</span>`);
+
+            // 5. Custom Classes & Std Objects (Xanh dương)
+            const classes = "Doctor|Patient|Hospital|Room|Medicine|Schedule|Person|Employee|MedicalRecord|AUTOID|ostream|iostream|vector|cout|cin|endl";
+            const clsRegex = new RegExp(`\\b(${classes})\\b`, 'g');
+            text = text.replace(clsRegex, `<span style="color: ${colors.class}">$1</span>`);
+            
+            // 6. Numbers (Đỏ) - Regex đơn giản cho số nguyên
+            text = text.replace(/\b(\d+)\b/g, `<span style="color: ${colors.number}">$1</span>`);
+
+            // 7. Fix Preprocessor (Tô màu cho #include, #pragma)
+            // Vì # không phải là word boundary (\b) với include, nên cần xử lý riêng hoặc fix lại
+            text = text.replace(/(#)(include|pragma)/g, `<span style="color: ${colors.keyword}">$1$2</span>`);
+
+            return text;
+        }
+        // --- KẾT THÚC HÀM TÔ MÀU ---
+
+
         function renderTabs() {
             let first = true;
             fileListEl.innerHTML = '';
@@ -845,23 +931,20 @@ int main() {
                 div.textContent = filename;
                 
                 div.onclick = (e) => {
-                    // Ngăn chặn sự kiện click lan truyền ra minimized-host (chỉ tab mới được phép mở)
                     e.stopPropagation(); 
-                    
-                    // Cập nhật tab active
                     document.querySelectorAll('.file-tab').forEach(t => t.classList.remove('active'));
                     div.classList.add('active');
                     
-                    // Cập nhật nội dung code
                     fileNameEl.textContent = filename;
-                    codeContentEl.textContent = codeFiles[filename];
+                    // SỬ DỤNG innerHTML và hàm highlightSyntax thay vì textContent
+                    codeContentEl.innerHTML = highlightSyntax(codeFiles[filename]);
                 };
 
-                // Thiết lập file mặc định (lần đầu tiên)
                 if (first) {
                     div.classList.add('active');
                     fileNameEl.textContent = filename;
-                    codeContentEl.textContent = codeFiles[filename];
+                    // SỬ DỤNG innerHTML và hàm highlightSyntax thay vì textContent
+                    codeContentEl.innerHTML = highlightSyntax(codeFiles[filename]);
                     first = false;
                 }
 
@@ -869,115 +952,62 @@ int main() {
             }
         }
 
-        // Hàm mở Modal Code (Maximizing)
         function openModal() {
-            // 1. Di chuyển Code Display Area vào Modal
             codeHostMaximized.appendChild(codeDisplayArea);
-            
-            // 2. Cập nhật CSS cho Modal (đã là h-full w-full)
-            codeDisplayArea.classList.remove('h-full', 'w-full'); // Remove class from minimized state
-            
-            // 3. Ẩn nút maximize trong trạng thái full screen
+            codeDisplayArea.classList.remove('h-full', 'w-full'); 
             maximizeButton.style.display = 'none';
-
-            // 4. Hiển thị Modal
             codeModal.style.display = 'block';
             document.body.style.overflow = 'hidden'; 
         }
 
-        // Hàm đóng Modal Code (Minimizing)
         function closeModal() {
-            // 1. Di chuyển Code Display Area về Khung chứa thu nhỏ
             codeHostMinimized.appendChild(codeDisplayArea);
-
-            // 2. Cập nhật CSS cho Khung thu nhỏ
             codeDisplayArea.classList.add('h-full', 'w-full'); 
-            
-            // 3. Hiện lại nút maximize
             maximizeButton.style.display = 'flex';
-
-            // 4. Ẩn Modal
             codeModal.style.display = 'none';
             document.body.style.overflow = '';
         }
         
-        // HÀM XỬ LÝ IMAGE MODAL MỚI
         function openImageModal(imageSrc) {
             modalImage.src = imageSrc;
-            imageModal.style.display = 'flex'; // Dùng 'flex' để căn giữa
+            imageModal.style.display = 'flex'; 
             document.body.style.overflow = 'hidden';
         }
 
         function closeImageModal() {
             imageModal.style.display = 'none';
-            // Đảm bảo không tắt overflow nếu modal code đang mở
             if (codeModal.style.display !== 'block') {
                  document.body.style.overflow = '';
             }
         }
-        // END: HÀM XỬ LÝ IMAGE MODAL MỚI
-        
-        // Hàm cập nhật thứ, ngày, giờ hiện tại (MỚI)
-        function updateDateTime() {
-            const now = new Date();
-            
-            // Định dạng thứ (Tiếng Việt)
-            const days = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
-            const dayOfWeek = days[now.getDay()];
 
-            // Định dạng ngày/tháng/năm
-            const date = now.toLocaleDateString('vi-VN');
-            
-            // Định dạng giờ:phút:giây
-            const time = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-            // Hiển thị ra HTML
-            const datetimeEl = document.getElementById('current-datetime');
-            if (datetimeEl) {
-                datetimeEl.innerHTML = `
-                    <div class="text-xs sm:text-sm">${dayOfWeek}, ${date}</div>
-                    <div class="font-bold text-base sm:text-lg">${time}</div>
-                `;
-            }
-        }
-        // END: Hàm cập nhật thứ, ngày, giờ hiện tại
-
-        // Ngăn chặn việc click vào nút Maximize cũng gọi openModal() lần nữa
         maximizeButton.addEventListener('click', (e) => {
             e.stopPropagation(); 
             openModal();
         });
 
 
-        // Đóng modal khi click ra ngoài hoặc nhấn phím ESC
         window.onclick = function(event) {
             if (event.target == codeModal) {
                 closeModal();
             }
-            // Thêm logic đóng image modal khi click ra ngoài
             if (event.target == imageModal) {
                 closeImageModal();
             }
         }
 
         document.addEventListener('keydown', function(event) {
-            // Đóng Image Modal khi nhấn phím Escape
             if (event.key === 'Escape' && imageModal.style.display === 'flex') {
                 closeImageModal();
             }
-            // Đóng Code Modal khi nhấn phím Escape
             if (event.key === 'Escape' && codeModal.style.display === 'block') {
                 closeModal();
             }
         });
 
 
-        // Khởi tạo giao diện code khi trang được tải
         document.addEventListener('DOMContentLoaded', () => {
              renderTabs();
-             // Thêm hàm khởi tạo thời gian (MỚI)
-             updateDateTime(); 
-             setInterval(updateDateTime, 1000); // Cập nhật mỗi giây
         });
     </script>
 </body>
