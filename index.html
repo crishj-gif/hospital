@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hệ Thống Quản Lý Bệnh Viện </title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 
     <style>
@@ -26,17 +25,36 @@
             border-radius: 12px;
         }
 
+        /* CODE DISPLAY STYLES - Áp dụng cho cả Minimized và Maximized */
         .code-window {
             background-color: #1e1e2e;
-            border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
             overflow: hidden;
             border: 1px solid #444;
+            display: flex; 
+            flex-direction: column;
+            height: 100%;
         }
 
         .code-sidebar {
             background-color: #2b2b3b;
             border-right: 1px solid #444;
+            overflow-y: auto;
+            flex-shrink: 0;
+            width: 25%;
+        }
+        
+        .code-content-area {
+            background: #282a36;
+            overflow: auto;
+            padding: 16px;
+            flex-grow: 1;
+            width: 75%;
+        }
+        
+        .code-main-flex {
+            display: flex;
+            flex-grow: 1;
         }
 
         .file-tab {
@@ -64,32 +82,41 @@
             white-space: pre-wrap;
         }
 
+        /* MINIMIZED VIEW - Khung Code ở giao diện chính */
+        .minimized-host {
+            height: 800px; /* Chiều cao cố định */
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer; /* Toàn bộ khung thu nhỏ có thể click để mở rộng */
+        }
+        
+        /* Nút Maximize */
+        #maximize-button {
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 12px;
+            background-color: rgba(239, 68, 68, 0.9); /* Red-500 */
+            color: white;
+            z-index: 10;
+            border-bottom-left-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        #maximize-button:hover {
+            background-color: rgba(185, 28, 28, 0.95); /* Red-700 */
+        }
+
         .diagram-container {
             background-color: rgba(255, 255, 255, 0.95);
             border-radius: 8px;
             padding: 20px;
             color: #333;
-
-        }
-
-        .mermaid {
-            background-color: transparent !important;
-            color: #d1d5db;
-            padding: 20px;
-            border-radius: 0.75rem;
-        }
-        .mermaid .cluster rect, .mermaid .classGroup rect {
-            fill: #1e1e2e !important;
-            stroke: #ff79c6 !important;
-        }
-        .mermaid text {
-            fill: #fcd34d !important;
-        }
-        .mermaid .edgeLabel, .mermaid .label {
-            fill: #d1d5db !important;
-        }
-        .mermaid path.edge {
-            stroke: #8be9fd !important;
         }
         
         .logo-container {
@@ -106,12 +133,86 @@
             object-fit: contain;
             border-radius: 8px;
         }
+
+        /* MODAL STYLES */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            z-index: 50;
+            display: none;
+            overflow: hidden;
+        }
+
+        .modal-content {
+            height: 90vh;
+            width: 90vw;
+            margin: 5vh auto;
+            position: relative;
+        }
+
+        .close-button {
+            position: absolute;
+            top: -30px;
+            right: 0px;
+            color: white;
+            font-size: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+
+        .close-button:hover {
+            color: #ef4444;
+        }
+        
+        /* CSS cho Image Modal */
+        #image-modal-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            width: 100%;
+            padding: 20px;
+            /* Cần relative để nút đóng X nằm đúng vị trí, tránh bị tràn */
+            position: relative; 
+        }
+
+        /* Di chuyển nút đóng X lên trên và bên phải của màn hình modal */
+        #image-modal .close-button {
+            top: 20px; /* Di chuyển xuống một chút so với mép trên */
+            right: 40px; /* Lùi vào một chút so với mép phải */
+            font-size: 40px; /* Phóng to nút X cho dễ bấm */
+            z-index: 60; /* Đảm bảo nút X luôn nằm trên ảnh */
+            color: #fca5a5; /* Màu hồng nhạt cho nổi bật */
+        }
+
+        #modal-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+            border-radius: 8px;
+        }
+        /* END: Thêm CSS cho Image Modal */
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8">
 
     <div class="max-w-7xl mx-auto mb-10">
-        <div class="header-box p-6 text-center transform hover:scale-[1.01] transition-transform duration-300">
+        <!-- Đã thêm class 'relative' cho header-box để định vị thời gian tuyệt đối -->
+        <div class="header-box relative p-6 text-center transform hover:scale-[1.01] transition-transform duration-300">
+            
+            <!-- Thêm ô hiển thị thứ ngày giờ hiện tại vào góc trên bên phải -->
+            <div id="current-datetime" class="absolute top-3 right-3 text-right text-red-200 text-sm font-mono p-2 bg-red-800/50 rounded-lg shadow-inner backdrop-blur-sm hidden sm:block">
+                Đang tải...
+            </div>
+            <!-- Kết thúc ô hiển thị thứ ngày giờ hiện tại -->
+            
             <div class="logo-container">
                 <a href="/">
                     <img src="https://upload.wikimedia.org/wikipedia/vi/0/0e/Logo_MTA_new.png" alt="Logo MTA" class="website-logo">
@@ -132,9 +233,10 @@
                 <h2 class="text-2xl font-bold text-orange-400 mb-4 border-b border-gray-600 pb-2">Nguyên Tắc Thiết Kế</h2>
                 <ul class="space-y-3">
                     <li class="flex items-start">
-                       
+                       <span class="text-pink-500 mr-2">➤</span>
                         <div>
-                            
+                            <strong class="text-pink-400">Tự Động Sinh ID:</strong>
+                            <p class="text-sm text-gray-300">Sử dụng lớp <code class="text-red-400">AUTOID</code> với biến <code class="text-red-400">static</code> để quản lý và sinh ID duy nhất cho các đối tượng như <span class="text-orange-400">Room</span>.</p>
                         </div>
                     </li>
                     <li class="flex items-start">
@@ -160,90 +262,29 @@
                     </li>
                 </ul>
             </div>
+            
 
             <div class="bg-gray-800 p-1 rounded-xl border border-gray-600 shadow-2xl">
                 <h2 class="text-3xl font-extrabold text-orange-400 m-4 text-center">Sơ Đồ Lớp </h2>
                 
-                <div class="diagram-container overflow-x-auto p-4">
-                    <div class="mermaid" id="hospital-uml">
-                        classDiagram
-                            direction BT
-                            
-                            %% Định nghĩa các lớp
-                            class Person {
-                                #string name
-                                #int age
-                                +virtual display()
-                            }
-                            class Employee {
-                                +schedule()
-                            }
-                            class Doctor {
-                                -string specialization
-                                -Schedule doctorSchedule
-                                +virter()
-                            }
-                            class Patient {
-                                -MedicalRecord record
-                                -int roomNumber
-                            }
-                            class Schedule {
-                                -string timeSlot
-                            }
-                            class Medicine {
-                                -string name
-                                -int stock
-                                +operator<<(ostream)
-                            }
-                            class MedicalRecord {
-                                -string diagnosis
-                                -Medicine prescribedList[]
-                                -int medicineCount
-                            }
-                            class Room {
-                                -int roomNumber
-                                -double price
-                            }
-                            class Hospital {
-                                -Doctor[] doctors
-                                -Patient[] patients
-                                -Room[] rooms
-                                +addDoctor()
-                                +addPatient()
-                                +manageSystem()
-                            }
-                            class AUTOID {
-                                +static generateID()
-                            }
-
-                            %% Định nghĩa các mối quan hệ
-                            
-                            %% Kế thừa (Inheritance)
-                            Person <|-- Employee
-                            Person <|-- Patient
-                            Employee <|-- Doctor
-
-                            %% Hợp thành (Composition)
-                            Patient "1" *-- "1" MedicalRecord : Ghi nhận
-                            
-                            %% Kết tập (Aggregation)
-                            Hospital "1" o-- "" Doctor : Quản lý
-                            Hospital "1" o-- "" Patient : Quản lý
-                            Hospital "1" o-- "" Room : Quản lý
-                            MedicalRecord "1" o-- "" Medicine : Kê đơn
-                            
-                            %% Hiệp hội (Association / Dependency)
-                            Doctor "1" -- "1" Schedule : Có Lịch làm
-                            Room ..> AUTOID : Sử dụng ID Tự động
-                            
-                    </div>
-                </div>
+                <div class="diagram-container overflow-x-auto p-4 flex justify-center items-center">
+                    <!-- Ảnh sơ đồ lớp, click để mở modal -->
+                    <img src="https://i.postimg.cc/DwDP76fS/Gemini-Generated-Image-osxq1yosxq1yosxq.png" 
+                         alt="Sơ đồ lớp Hệ Thống Quản Lý Bệnh Viện" 
+                         class="w-full h-auto max-w-full rounded-lg shadow-lg cursor-pointer"
+                         onclick="openImageModal(this.src)"> </div>
             </div>
         </div>
 
-        <div class="lg:col-span-2">
-            <div class="code-window flex flex-col h-[800px]">
-                <div class="bg-gray-900 p-3 border-b border-gray-700 flex justify-between items-center">
+        <div id="code-host-minimized" class="lg:col-span-2 minimized-host border-2 border-gray-700" onclick="openModal()">
+            
+            <div id="maximize-button">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-maximize-2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" x2="14" y1="3" y2="10"/><line x1="3" x2="10" y1="21" y2="14"/></svg>
+                 <span class="text-sm font-semibold hidden sm:inline">MỞ FULL SCREEN</span>
+            </div>
+
+            <div id="code-display-area" class="code-window h-full w-full">
+                <div class="bg-gray-900 p-3 border-b border-gray-700 flex justify-between items-center flex-shrink-0">
                     <div class="flex space-x-2">
                         <div class="w-3 h-3 rounded-full bg-red-500"></div>
                         <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
@@ -252,10 +293,10 @@
                     <span class="text-gray-400 text-sm font-mono" id="current-filename">main.cpp</span>
                 </div>
 
-                <div class="flex flex-1 overflow-hidden">
-                    <div class="code-sidebar w-1/4 overflow-y-auto" id="file-list">
-                    </div>
-                    <div class="w-3/4 bg-[#282a36] overflow-auto p-4 relative">
+                <div class="code-main-flex flex-1 overflow-hidden">
+                    <div class="code-sidebar overflow-y-auto" id="file-list">
+                        </div>
+                    <div class="code-content-area overflow-auto relative flex-grow">
                         <pre><code id="code-content" class="language-cpp"></code></pre>
                     </div>
                 </div>
@@ -263,11 +304,9 @@
         </div>
     </div>
 
-    <!-- FOOTER -->
     <footer class="bg-gray-900 text-white py-8 border-t border-gray-800 mt-8">
         <div class="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
             
-            <!-- KHỐI GÓC DƯỚI BÊN TRÁI: Design by Sơn Cris -->
             <div class="design-by-container mb-6 md:mb-0 text-center md:text-left">
                 <p class="design-by-text text-sm text-gray-400">
                     Design by <b class="text-white font-semibold tracking-wider">Sơn Cris</b>
@@ -275,26 +314,19 @@
                 <p class="text-xs text-gray-600 mt-1">&copy; 2025 Lập trình hướng đối tượng</p>
             </div>
 
-            <!-- KHỐI GÓC DƯỚI BÊN PHẢI: 3 thông tin liên hệ theo hàng ngang -->
             <div class="contact-links-container flex flex-wrap justify-center gap-3 sm:gap-4">
                 
-                <!-- Phone Link (Xanh Green) -->
                 <a href="tel:0327208690" title="Gọi 0327208690" class="footer-link phone-link flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium transition duration-300 ease-in-out transform hover:scale-105 shadow-md bg-green-600 hover:bg-green-700 text-white">
-                    <!-- Icon Điện thoại -->
                     <svg class="footer-icon w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M164.9 24.6c-48 0-87.1 39.1-87.1 87.1v278.7c0 48 39.1 87.1 87.1 87.1h182.2c48 0 87.1-39.1 87.1-87.1V111.7c0-48-39.1-87.1-87.1-87.1H164.9zM256 464c-15.4 0-27.9-12.5-27.9-27.9s12.5-27.9 27.9-27.9 27.9 12.5 27.9 27.9-12.5 27.9-27.9 27.9zm135.2-348.8H122.9V392h268.3V115.2z"/></svg>
                     <span>0327208690</span>
                 </a>
                 
-                <!-- Instagram Link (Hồng) -->
                 <a href="https://www.instagram.com/son_cris3012/" target="_blank" title="Instagram" class="footer-link instagram-link flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium transition duration-300 ease-in-out transform hover:scale-105 shadow-md bg-pink-600 hover:bg-pink-700 text-white">
-                    <!-- Icon Instagram -->
                     <svg class="footer-icon w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M224.1 12.6C99.2-22.3-22.3 99.2 12.6 224.1l11.2 11.2c19.3 19.3 46.4 30.1 74.5 30.1h145.4c28.1 0 55.2-10.8 74.5-30.1l11.2-11.2C485.6 99.2 364.1-22.3 239.1 12.6L224.1 27.7l-15 42.1c-14.4 40.3-43.7 70.8-82.6 86.6L48.2 168.1C25.3 177.1 8.5 197.6 8.5 221v82c0 23.4 16.8 43.9 39.7 52.9l84.4 32.1c38.9 15.8 68.2 46.3 82.6 86.6l15 42.1 15-42.1c14.4-40.3 43.7-70.8 82.6-86.6l84.4-32.1c22.9-9 39.7-29.5 39.7-52.9v-82c0-23.4-16.8-43.9-39.7-52.9l-84.4-32.1c-38.9-15.8-68.2-46.3-82.6-86.6l-15-42.1L224.1 27.7zM169.1 296.8c-29.4-29.4-29.4-77 0-106.4s77-29.4 106.4 0 29.4 77 0 106.4-77 29.4-106.4 0zm53.2-61.9c-15.5-15.5-15.5-40.7 0-56.2s40.7-15.5 56.2 0 15.5 40.7 0 56.2-40.7 15.5-56.2 0zm117.8 7.3c15.2-15.2 15.2-39.8 0-55s-39.8-15.2-55 0c-15.2 15.2-15.2 39.8 0 55s39.8 15.2 55 0z"/></svg>
                     <span>Instagram</span>
                 </a>
                 
-                <!-- Facebook Link (Xanh Blue) -->
                 <a href="https://web.facebook.com/sonsadboiz.12" target="_blank" title="Facebook" class="footer-link facebook-link flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium transition duration-300 ease-in-out transform hover:scale-105 shadow-md bg-blue-600 hover:bg-blue-700 text-white">
-                    <!-- Icon Facebook -->
                     <svg class="footer-icon w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M400 32H48A48 48 0 0 0 0 80v352a48 48 0 0 0 48 48h137.25V327.37h-51.2v-60.3h51.2v-44.4a76.43 76.43 0 0 1 76.4-76.4h37.7v59.7h-37.7c-25.1 0-25.1 9.2-25.1 25.4v40.7h63.2l-10.1 60.3h-53.1V480H400a48 48 0 0 0 48-48V80a48 48 0 0 0-48-48z"/></svg>
                     <span>Facebook</span>
                 </a>
@@ -303,8 +335,41 @@
     </footer>
 
 
+    <div id="code-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal()">
+                &times; </span>
+
+            <div id="code-host-maximized" class="h-full w-full">
+                </div>
+        </div>
+    </div>
+    
+    <!-- IMAGE MODAL: Đã điều chỉnh CSS và thêm X ở góc -->
+    <div id="image-modal" class="modal">
+        <div id="image-modal-content">
+            <!-- Nút đóng X luôn nằm ở góc trên bên phải -->
+            <span class="close-button" onclick="closeImageModal()">
+                &times; 
+            </span>
+            <img id="modal-image" src="" alt="Sơ đồ lớp phóng to">
+        </div>
+    </div>
     <script>
-        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+        // Các phần tử DOM
+        const codeModal = document.getElementById('code-modal');
+        const codeHostMinimized = document.getElementById('code-host-minimized');
+        const codeHostMaximized = document.getElementById('code-host-maximized');
+        const codeDisplayArea = document.getElementById('code-display-area');
+        const fileListEl = document.getElementById('file-list');
+        const codeContentEl = document.getElementById('code-content');
+        const fileNameEl = document.getElementById('current-filename');
+        const maximizeButton = document.getElementById('maximize-button');
+        
+        // Thêm phần tử DOM cho Image Modal
+        const imageModal = document.getElementById('image-modal');
+        const modalImage = document.getElementById('modal-image');
+
 
         // Dữ liệu Code (21 file C++ mới)
         const codeFiles = {
@@ -365,6 +430,7 @@ public:
     Medicine(string n, int s);
     string getName();
     int getStock();
+    // Nạp chồng toán tử << để in thông tin thuốc
     friend ostream& operator<<(ostream& os, Medicine& m);
 };
 
@@ -389,6 +455,7 @@ int Medicine::getStock() {
     return stock;
 }
 
+// Định nghĩa nạp chồng toán tử <<
 ostream& operator<<(ostream& os, Medicine& m) {
     os << "   - Thuoc: " << m.name << " | So luong: " << m.stock;
     return os;
@@ -397,6 +464,7 @@ ostream& operator<<(ostream& os, Medicine& m) {
 
 #include <iostream>
 #include <string>
+#include "Medicine.h" 
 using namespace std;
 
 class MedicalRecord {
@@ -437,7 +505,8 @@ void MedicalRecord::displayRecord() {
     cout << "Chan doan: " << diagnosis << endl;
     cout << "Danh sach thuoc ke don:" << endl;
     for (int i = 0; i < medicineCount; i++) {
-        cout << prescribedList[i] << endl;
+        // Sử dụng toán tử << đã nạp chồng
+        cout << prescribedList[i] << endl; 
     }
 }`,
             "Room.h": `#pragma once
@@ -460,7 +529,8 @@ public:
             "Room.cpp": `#include "Room.h"
 
 Room::Room() {
-    roomNumber = AUTOID::generateID();
+    // Sử dụng AUTOID để tự động sinh số phòng
+    roomNumber = AUTOID::generateID(); 
     price = 0.0;
 }
 
@@ -488,7 +558,8 @@ protected:
 public:
     Person();
     Person(string n, int a);
-    virtual void display();
+    // Hàm ảo cho tính đa hình
+    virtual void display(); 
 };
 
 `,
@@ -515,7 +586,8 @@ public:
     Employee();
     Employee(string n, int a);
     void schedule();
-    void display();
+    // Ghi đè hàm display
+    void display(); 
 };
 
 `,
@@ -544,7 +616,9 @@ private:
 public:
     Doctor();
     Doctor(string n, int a, string spec, string time);
-    void virter();
+    // Hành động chuyên môn của bác sĩ
+    void virter(); 
+    // Ghi đè hàm display
     void display();
 };
 
@@ -583,7 +657,8 @@ public:
     Patient();
     Patient(string n, int a, int rNum, string diagnosis);
     void addMedicineToRecord(Medicine m);
-    void display();
+    // Ghi đè hàm display
+    void display(); 
 };
 
 `,
@@ -616,6 +691,7 @@ void Patient::display() {
 
 class Hospital {
 private:
+    // Mảng lưu trữ các đối tượng
     Doctor doctors[50];
     int doctorCount;
     
@@ -630,7 +706,8 @@ public:
     void addDoctor(Doctor d);
     void addPatient(Patient p);
     void addRoom(Room r);
-    void manageSystem();
+    // Phương thức quản lý hệ thống
+    void manageSystem(); 
 };
 
 `,
@@ -646,6 +723,9 @@ void Hospital::addDoctor(Doctor d) {
     if (doctorCount < 50) {
         doctors[doctorCount] = d;
         doctorCount++;
+    } else {
+        // Thêm thông báo lỗi (ví dụ)
+        cout << "Loi: Khong the them bac si, danh sach da day." << endl; 
     }
 }
 
@@ -653,6 +733,8 @@ void Hospital::addPatient(Patient p) {
     if (patientCount < 100) {
         patients[patientCount] = p;
         patientCount++;
+    } else {
+        cout << "Loi: Khong the them benh nhan, danh sach da day." << endl;
     }
 }
 
@@ -660,6 +742,8 @@ void Hospital::addRoom(Room r) {
     if (roomCount < 20) {
         rooms[roomCount] = r;
         roomCount++;
+    } else {
+        cout << "Loi: Khong the them phong, danh sach da day." << endl;
     }
 }
 
@@ -675,13 +759,15 @@ void Hospital::manageSystem() {
 
     cout << ">>> DANH SACH BAC SI (" << doctorCount << ") <<<" << endl;
     for(int i = 0; i < doctorCount; i++) {
-        doctors[i].display();
+        // Đa hình: gọi hàm display() của lớp Doctor
+        doctors[i].display(); 
     }
     cout << endl;
 
     cout << ">>> DANH SACH BENH NHAN (" << patientCount << ") <<<" << endl;
     for(int i = 0; i < patientCount; i++) {
-        patients[i].display();
+        // Đa hình: gọi hàm display() của lớp Patient
+        patients[i].display(); 
     }
 }`,
             "main.cpp": `#include <iostream>
@@ -690,25 +776,31 @@ void Hospital::manageSystem() {
 #include "Patient.h"
 #include "Room.h"
 #include "Medicine.h"
+#include "AUTOID.h"
 
 using namespace std;
 
 int main() {
+    // Thiết lập hệ thống
     Hospital myHospital;
 
-    Room r1(500000);
-    Room r2(300000);
+    // 1. Thêm phòng
+    Room r1(500000); // Tự động sinh ID
+    Room r2(300000); // Tự động sinh ID
     myHospital.addRoom(r1);
     myHospital.addRoom(r2);
 
+    // 2. Thêm bác sĩ
     Doctor d1("Nguyen Van A", 45, "Tim mach", "Sang (7h-11h)");
     Doctor d2("Tran Thi B", 32, "Than kinh", "Chieu (13h-17h)");
     
-    d1.virter();
+    // Ví dụ về hành động chuyên môn
+    d1.virter(); 
 
     myHospital.addDoctor(d1);
     myHospital.addDoctor(d2);
 
+    // 3. Thêm bệnh nhân và kê đơn thuốc (sử dụng nạp chồng toán tử)
     Patient p1("Le Van C", 60, r1.getRoomNumber(), "Cao huyet ap");
     Medicine m1("Panadol", 10);
     Medicine m2("Vitamin C", 20);
@@ -722,45 +814,50 @@ int main() {
     myHospital.addPatient(p1);
     myHospital.addPatient(p2);
 
+    // 4. Quản lý và hiển thị thông tin hệ thống
     cout << endl;
     myHospital.manageSystem();
 
     return 0;
 }`
         };
+        
+        // Sắp xếp file để hiển thị
+        const orderedFiles = [
+            "AUTOID.h", "Schedule.h", "Medicine.h", "MedicalRecord.h", "Room.h", 
+            "Person.h", "Employee.h", "Doctor.h", "Patient.h", "Hospital.h",
+            "AUTOID.cpp", "Schedule.cpp", "Medicine.cpp", "MedicalRecord.cpp", "Room.cpp",
+            "Person.cpp", "Employee.cpp", "Doctor.cpp", "Patient.cpp", "Hospital.cpp",
+            "main.cpp"
+        ];
 
-        const fileListEl = document.getElementById('file-list');
-        const codeContentEl = document.getElementById('code-content');
-        const fileNameEl = document.getElementById('current-filename');
 
+        // Hàm để tạo các tab file
         function renderTabs() {
             let first = true;
-            fileListEl.innerHTML = ''; // Xóa nội dung cũ
-            
-            // Sắp xếp các file theo thứ tự .h rồi đến .cpp, và main.cpp cuối cùng
-            const orderedFiles = [
-                "AUTOID.h", "Schedule.h", "Medicine.h", "MedicalRecord.h", "Room.h", 
-                "Person.h", "Employee.h", "Doctor.h", "Patient.h", "Hospital.h",
-                "AUTOID.cpp", "Schedule.cpp", "Medicine.cpp", "MedicalRecord.cpp", "Room.cpp",
-                "Person.cpp", "Employee.cpp", "Doctor.cpp", "Patient.cpp", "Hospital.cpp",
-                "main.cpp"
-            ];
+            fileListEl.innerHTML = '';
             
             for (const filename of orderedFiles) {
-                if (!codeFiles[filename]) continue; // Bỏ qua nếu không tồn tại
+                if (!codeFiles[filename]) continue;
 
                 const div = document.createElement('div');
                 div.className = 'file-tab p-3 text-gray-400 hover:text-white text-sm font-mono border-b border-gray-700';
                 div.textContent = filename;
                 
-                div.onclick = () => {
+                div.onclick = (e) => {
+                    // Ngăn chặn sự kiện click lan truyền ra minimized-host (chỉ tab mới được phép mở)
+                    e.stopPropagation(); 
+                    
+                    // Cập nhật tab active
                     document.querySelectorAll('.file-tab').forEach(t => t.classList.remove('active'));
                     div.classList.add('active');
                     
+                    // Cập nhật nội dung code
                     fileNameEl.textContent = filename;
                     codeContentEl.textContent = codeFiles[filename];
                 };
 
+                // Thiết lập file mặc định (lần đầu tiên)
                 if (first) {
                     div.classList.add('active');
                     fileNameEl.textContent = filename;
@@ -772,9 +869,116 @@ int main() {
             }
         }
 
-        renderTabs();
+        // Hàm mở Modal Code (Maximizing)
+        function openModal() {
+            // 1. Di chuyển Code Display Area vào Modal
+            codeHostMaximized.appendChild(codeDisplayArea);
+            
+            // 2. Cập nhật CSS cho Modal (đã là h-full w-full)
+            codeDisplayArea.classList.remove('h-full', 'w-full'); // Remove class from minimized state
+            
+            // 3. Ẩn nút maximize trong trạng thái full screen
+            maximizeButton.style.display = 'none';
 
+            // 4. Hiển thị Modal
+            codeModal.style.display = 'block';
+            document.body.style.overflow = 'hidden'; 
+        }
+
+        // Hàm đóng Modal Code (Minimizing)
+        function closeModal() {
+            // 1. Di chuyển Code Display Area về Khung chứa thu nhỏ
+            codeHostMinimized.appendChild(codeDisplayArea);
+
+            // 2. Cập nhật CSS cho Khung thu nhỏ
+            codeDisplayArea.classList.add('h-full', 'w-full'); 
+            
+            // 3. Hiện lại nút maximize
+            maximizeButton.style.display = 'flex';
+
+            // 4. Ẩn Modal
+            codeModal.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+        
+        // HÀM XỬ LÝ IMAGE MODAL MỚI
+        function openImageModal(imageSrc) {
+            modalImage.src = imageSrc;
+            imageModal.style.display = 'flex'; // Dùng 'flex' để căn giữa
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeImageModal() {
+            imageModal.style.display = 'none';
+            // Đảm bảo không tắt overflow nếu modal code đang mở
+            if (codeModal.style.display !== 'block') {
+                 document.body.style.overflow = '';
+            }
+        }
+        // END: HÀM XỬ LÝ IMAGE MODAL MỚI
+        
+        // Hàm cập nhật thứ, ngày, giờ hiện tại (MỚI)
+        function updateDateTime() {
+            const now = new Date();
+            
+            // Định dạng thứ (Tiếng Việt)
+            const days = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+            const dayOfWeek = days[now.getDay()];
+
+            // Định dạng ngày/tháng/năm
+            const date = now.toLocaleDateString('vi-VN');
+            
+            // Định dạng giờ:phút:giây
+            const time = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+            // Hiển thị ra HTML
+            const datetimeEl = document.getElementById('current-datetime');
+            if (datetimeEl) {
+                datetimeEl.innerHTML = `
+                    <div class="text-xs sm:text-sm">${dayOfWeek}, ${date}</div>
+                    <div class="font-bold text-base sm:text-lg">${time}</div>
+                `;
+            }
+        }
+        // END: Hàm cập nhật thứ, ngày, giờ hiện tại
+
+        // Ngăn chặn việc click vào nút Maximize cũng gọi openModal() lần nữa
+        maximizeButton.addEventListener('click', (e) => {
+            e.stopPropagation(); 
+            openModal();
+        });
+
+
+        // Đóng modal khi click ra ngoài hoặc nhấn phím ESC
+        window.onclick = function(event) {
+            if (event.target == codeModal) {
+                closeModal();
+            }
+            // Thêm logic đóng image modal khi click ra ngoài
+            if (event.target == imageModal) {
+                closeImageModal();
+            }
+        }
+
+        document.addEventListener('keydown', function(event) {
+            // Đóng Image Modal khi nhấn phím Escape
+            if (event.key === 'Escape' && imageModal.style.display === 'flex') {
+                closeImageModal();
+            }
+            // Đóng Code Modal khi nhấn phím Escape
+            if (event.key === 'Escape' && codeModal.style.display === 'block') {
+                closeModal();
+            }
+        });
+
+
+        // Khởi tạo giao diện code khi trang được tải
+        document.addEventListener('DOMContentLoaded', () => {
+             renderTabs();
+             // Thêm hàm khởi tạo thời gian (MỚI)
+             updateDateTime(); 
+             setInterval(updateDateTime, 1000); // Cập nhật mỗi giây
+        });
     </script>
 </body>
 </html>
-
